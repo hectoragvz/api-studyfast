@@ -10,7 +10,6 @@ OPENAI_API_KEY = settings.OPENAI_API_KEY
 from llama_parse import LlamaParse
 from llama_index.core import VectorStoreIndex, Settings
 from llama_index.core.node_parser import MarkdownElementNodeParser
-from llama_index.postprocessor.flag_embedding_reranker import FlagEmbeddingReranker
 from llama_index.llms.openai import OpenAI
 from llama_index.embeddings.openai import OpenAIEmbedding
 
@@ -19,7 +18,6 @@ from llama_index.readers.remote import RemoteReader
 from llama_index.readers.remote_depth import RemoteDepthReader
 
 nest_asyncio.apply()
-reranker = FlagEmbeddingReranker(top_n=5, model="BAAI/bge-reranker-large")
 llm = OpenAI(model="gpt-3.5-turbo", temperature=0)
 node_parser = MarkdownElementNodeParser(
     llm=OpenAI(model="gpt-3.5-turbo"), num_workers=8
@@ -150,9 +148,7 @@ def cardify_pdf(remote_url, requirement):
 
     base_nodes, objects = node_parser.get_nodes_and_objects(nodes)
     index = VectorStoreIndex(nodes=base_nodes + objects)
-    recursive_query_engine = index.as_query_engine(
-        similarity_top_k=15, node_postprocessors=[reranker], verbose=False
-    )
+    recursive_query_engine = index.as_query_engine(similarity_top_k=15, verbose=False)
     print("Generating the questions you asked for...")
     response = recursive_query_engine.query(get_cards_from_need(requirement))
     print(response)
