@@ -1,6 +1,6 @@
 from django.conf import settings
 from pathlib import Path
-import os, nest_asyncio, time
+import nest_asyncio
 
 # API KEYS
 LLAMA_CLOUD_API_KEY = settings.LLAMA_CLOUD_API_KEY
@@ -14,7 +14,7 @@ from llama_index.llms.openai import OpenAI
 from llama_index.embeddings.openai import OpenAIEmbedding
 
 # TWO remote reader options
-from llama_index.readers.remote import RemoteReader
+# from llama_index.readers.remote import RemoteReader
 from llama_index.readers.remote_depth import RemoteDepthReader
 
 nest_asyncio.apply()
@@ -130,36 +130,12 @@ def cardify_pdf(remote_url, requirement):
     """
     Retrieves a remote url and feeds it to LlamaParse and generates the JSON object we need for each pdf
     """
-    start = time.time()
-    print(f"The remote url is: {remote_url}")
-    print(f"The requirement is: {requirement}")
-    print("Starting...")
-    # file_path, file_name = download_pdf(remote_url)
-    # print("File found")
-    # reader = SimpleDirectoryReader(input_files=[file_path])
     documents = remote_loader.load_data(url=remote_url)
-    # documents = reader.load_data()
-    print(f"We have {len(documents)} documents and look like such:")
-    print("--------------START--------------")
-    print(documents[0].text[:20])
-    print("--------------END--------------")
     nodes = node_parser.get_nodes_from_documents(documents)
-    print(f"We got {len(nodes)} nodes")
-
     base_nodes, objects = node_parser.get_nodes_and_objects(nodes)
     index = VectorStoreIndex(nodes=base_nodes + objects)
     recursive_query_engine = index.as_query_engine(similarity_top_k=15, verbose=False)
-    print("Generating the questions you asked for...")
     response = recursive_query_engine.query(get_cards_from_need(requirement))
-    print(response)
-    print("Calling pydantic formatting...")
     raw_pydantic = program(input=response)
-    print("Converting it to dictionary with model.dump...")
     output = raw_pydantic.model_dump()
-    print("Cards generated!")
-    # print("Deleting downloaded file...")
-    # delete_fiile(file_name)
-    print("File deleted...")
-    end = time.time()
-    print(f"It took {end - start} seconds to do everything")
     return output
