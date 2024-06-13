@@ -1,6 +1,6 @@
 from django.conf import settings
 from pathlib import Path
-import os, nest_asyncio, requests, time
+import os, nest_asyncio, time
 
 # API KEYS
 LLAMA_CLOUD_API_KEY = settings.LLAMA_CLOUD_API_KEY
@@ -126,49 +126,6 @@ def get_cards_from_need(requirement):
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-
-
-# DOWNLOAD PDF FUNCTION
-def download_pdf(url):
-    """
-    Downloads a pdf from a remote location, extracts the name
-    of the pdf and stores it in the local files location and
-    returns the file path of the downloaded file and the file name.
-    Also verifies if the pdf is already in the location, if it is,
-    returns the paths and the name of the file
-    """
-    folder_path = Path(settings.MEDIA_ROOT)
-    file_name = url.split("/")[-1].split(".pdf")[0]
-    file_name = file_name.replace("_", "-").lower()
-    file_path = os.path.join(folder_path, file_name + ".pdf")
-    # File is already there
-    if os.path.exists(file_path):
-        print(f"PDF is already in {file_path}")
-        return file_path, file_name
-    # File is new
-    else:
-        response = requests.get(url)
-        if response.status_code == 200:
-            with open(file_path, "wb") as file:
-                file.write(response.content)
-            print(f"PDF downloaded successfully and saved in {file_path}")
-        else:
-            print(f"Failed to download PDF. Status code: {response.status_code}")
-    return file_path, file_name
-
-
-def delete_fiile(file_name):
-    folder_path = Path(settings.MEDIA_ROOT)
-    file_path = os.path.join(folder_path, file_name + ".pdf")
-
-    if os.path.exists(file_path):
-        try:
-            os.remove(file_path)
-            print(f"File {file_name} successfully deleted from {folder_path}")
-        except Exception as e:
-            print(f"An error occurred while trying to delete the file: {e}")
-    else:
-        print(f"File {file_name} does not exist in {folder_path}")
 
 
 def cardify_pdf(remote_url, requirement):
