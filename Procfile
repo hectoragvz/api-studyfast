@@ -1,1 +1,1 @@
-web: python manage.py collectstatic && gunicorn makeflashcards.wsgi
+web: python manage.py collectstatic && gunicorn makeflashcards.wsgi --workers 3 --timeout 120
